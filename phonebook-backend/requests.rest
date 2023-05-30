@@ -1,0 +1,13 @@
+GET http://localhost:3001/api/persons
+###
+GET http://localhost:3001/api/persons/1
+###
+POST http://localhost:3001/api/persons
+content-type: application/json
+
+{
+    "name": "Murillo",
+    "number": "(415) 321-4021"
+}
+###
+GET http://localhost:3001/info
