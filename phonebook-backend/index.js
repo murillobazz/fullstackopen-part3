@@ -1,45 +1,29 @@
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const app = express();
+const Person = require('./models/person');
 
-app.use(express.json());
+app.use(express.json()); // Express middleware to parse json responses
 app.use(express.static('build'));
 app.use(cors());
 
-morgan.token('body', (req, res) => JSON.stringify(req.body));
+// Morgan is used to intercept every API call and log its details to the console
+morgan.token('body', (req, res) => JSON.stringify(req.body)); // Here we define a custom token to be shown in the message that'll be logged
+// Below, we call express.use on morgan with the 'fields' that'll be shown in the console message (per docs)
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
 
-let persons = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
-
+// The GET call has been modified to execute a callback function with a MongoDB query (find({})), it works perfectly when connected to a Mongo DB.
 app.get('/api/persons', (req, res) => {
-  res.json(persons);
+  Person.find({}).then(notes => {
+    res.json(notes);
+  })
 })
 
 app.post('/api/persons', (req, res) => {
   const body = req.body;
-  const alreadyExists = persons.find(person => person.name === body.name);
+  // const alreadyExists = Person.findOne({ name : body.name });
 
   if (!body.name || !body.number) {
     return res.status(400).json({
@@ -47,31 +31,27 @@ app.post('/api/persons', (req, res) => {
     })
   }
 
-  if (alreadyExists) {
-    return res.status(400).json({
-      error: "name must be unique"
-    })
-  }
+  // if (alreadyExists) {
+  //   return res.status(400).json({
+  //     error: "name must be unique"
+  //   })
+  // }
 
-  const newPerson = {
-    id: Math.floor(Math.random() * 600),
+  const newPerson = new Person({
     name: body.name,
     number: body.number,
-  }
+  });
 
-  persons = persons.concat(newPerson);
+  newPerson.save().then(savedPerson => {
+    res.json(savedPerson);    
+  })
 
-  res.json(newPerson);
 })
 
 app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find(person => person.id === id);
-  if (person) {
+  Person.findById(req.params.id).then(person => {
     res.json(person);
-  } else {
-    res.status(404).send('Person not found').end();
-  }
+  })
 })
 
 app.delete('/api/persons/:id', (req, res) => {
@@ -87,7 +67,7 @@ app.get('/info', (req, res) => {
   res.send(`<p>Phonebook has info for ${quantity} people</p><p>${date}</p>`);
 })
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 })
