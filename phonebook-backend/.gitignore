@@ -1,5 +1,2 @@
 node_modules
 .env
-/build
-build/asset-manifest.json
-build/index.html
