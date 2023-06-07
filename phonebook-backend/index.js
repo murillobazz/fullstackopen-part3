@@ -22,11 +22,11 @@ const ErrorHandler = (err, req, res, next) => {
   }
 
   if (err.name === 'ValidationError') {
-    return res.status(400).send({ error: err.message })
+    return res.status(400).send({ error: err.message });
   }
 
   next(err);
-}
+};
 app.use(ErrorHandler); // Middleware for handling errors, should be stated last.
 
 // The GET ALL call has been modified to execute a callback function with a MongoDB query (find({})),
@@ -34,8 +34,8 @@ app.use(ErrorHandler); // Middleware for handling errors, should be stated last.
 app.get('/api/persons', (req, res) => {
   Person.find({}).then(persons => {
     res.json(persons);
-  })
-})
+  });
+});
 
 // POST Person - Already working with the database, using the Person model.
 app.post('/api/persons', (req, res, next) => {
@@ -44,7 +44,7 @@ app.post('/api/persons', (req, res, next) => {
   if (!body.name || !body.number) {
     return res.status(400).json({
       error : "content missing"
-    })
+    });
   }
 
   const newPerson = new Person({
@@ -57,7 +57,7 @@ app.post('/api/persons', (req, res, next) => {
       res.json(savedPerson);    
     })
     .catch(err => next(err));
-})
+});
 
 // GET By ID
 app.get('/api/persons/:id', (req, res, next) => {
@@ -69,8 +69,8 @@ app.get('/api/persons/:id', (req, res, next) => {
         res.status(404).end();
       }
     })
-    .catch(err => next(err))
-})
+    .catch(err => next(err));
+});
 
 // PUT By Name
 app.put('/api/persons/:id', (req, res, next) => {
@@ -84,23 +84,23 @@ app.put('/api/persons/:id', (req, res, next) => {
     .then(updatedPerson => {
       res.json(updatedPerson);
     })
-    .catch(err => next(err))
-})
+    .catch(err => next(err));
+});
 
 // DELETE Person
 app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndRemove(req.params.id)
     .then(result => {
       if(!result) {
-        console.log(`This person had already been removed.`)
+        console.log(`This person had already been removed.`);
       }
       res.status(204).end();
     })
     .catch(err => next(err));
-})
+});
 
 // GET /info
-app.get('/info', (req, res) => {
+app.get('/info', (req, res, next) => {
   const date = new Date();
 
   Person.find({})
@@ -110,9 +110,9 @@ app.get('/info', (req, res) => {
     })
     .catch(err => next(err));
 
-})
+});
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-})
+});
